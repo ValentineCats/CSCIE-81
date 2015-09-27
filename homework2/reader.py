@@ -80,67 +80,12 @@ def getWindow(fileCon, measurements):
 	print(meanInterval)
 	
 
-#	else:
-		#in the end this should be removed, but right now it could help tell
-		#us how big the window should be. The larger the window the less likely
-		#it is that we will happen to get an buffered of all 1 number. 
-#		print("The variance of this window is 0")
-
 	#Calculate cumulative probability density
 	#Now that we have the necessary data measurements, we can compare them
 	if windowMeas['stdDev'] > measurements['stdDev']*1.2:
 		print("Mean ", end="")
 		return True
 
-
-#This is an attempt to narrow down where the variance changes.
-#It is not very precise, but the forums said we just needed to estimate the 
-#location of the line for variance. 
-#the mean argument should always = np.mean(buffered) 
-#It is a recursive creation that takes the line that getWindow's fileCon (line) is
-#beginning on, the buffered array thing (divideThis), and weather the variance has increased
-#or decreased (varianceUp) as its arguments. line = int, divideThis = [], and 
-#varianceUp = boolean. The idea is to divide the divideThis in half and take half
-#with the larger (if varianceUp = True) or the smaller (if varianceUp = False)
-#variance and keep on dividing until we reach a point where we can't divide up
-#any more  	
-def getLine(divideThis, line, varianceUp, mean):
-	divideThis1 = []
-	divideThis2 = []
-	for i in range(lent(divideThis)):
-		if (i <= len(divideThis)):
-			divideThis1.append(divideThis[i])
-		else:
-			divideThis2.append(divideThis[i])
-		
-	if len(divideThis) <= 2:
-		var1 = (divideThis1[0] - mean) ^ 2
-		var2 = (divideThis2[0] - mean) ^ 2
-		#the variance has increased 
-		if varianceUp:
-			if var1 > var2:
-				return line
-			else:
-				return line + 1
-		#varianceUp is false so we want the line that the lower variance is on
-		else:
-			if var1 < var2:
-				return line
-			else:
-				return line + 1
-	#find which half is higher
-	if varianceUp:		
-		if np.var(divideThis1) > np.var(divideThis2):
-			getLine(divideThis1, line, varianceUp, mean)
-		else:
-			getLine(divideThis2, line + len(divideThis1) - 1, varianceUp, mean)
-	#Or find which half is lower
-	else:
-		if np.var(divideThis1) < np.var(divideThis2):
-			getLine(divideThis1, line, varianceUp, mean)
-		else:
-			getLine(divideThis2, line + lent(divideThis1) - 1, varianceUp, mean)
-		
 
 
 directory = argv[1]
