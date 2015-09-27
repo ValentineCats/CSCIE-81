@@ -57,19 +57,21 @@ def getWindow(fileCon, measurements):
 			raise EOFError("No samples, or too few samples in file")
 		buffered.append(line)
 	windowMeas = {'stdDev':np.std(buffered), 'mean':np.mean(buffered), 'var':np.var(buffered), 'sem':sp.stats.sem(buffered, ddof=0)}
-	pValue = 0.0
 	
 	#A variance of 0 means we can't perform the F-test
 	if(windowMeas['var'] != 0):
-		#variance has increased
-		if(windowMeas['var'] > measurements['var']):
-			pValue = sp.stats.f.sf((windowMeas['var'] / measurements['var']), window - 1, baselineSize - 1)
-		#variance has decreased
-		else:
-			pValue = sp.stats.f.sf((measurements['var'] / windowMeas['var']), baselineSize - 1, window - 1)
-		if  pValue < alphaVar:
-			print("Variance ", end="")
+		FValue = windowMeas['var'] / measurements['var']
+		upperVal = sp.stats.f.isf(alphaVar, window, baselineSize)
+		lowerVal = sp.stats.f.ppf(alphaVar, window, baselineSize)
+		
+		if  FValue < lowerVal or FValue > upperVal:
+			print("Variance ", end = "")
 			return True
+	#Since the baseline variance is 0 that means finding any variance at all is a change in variance  
+	else:
+		if windowMeas['var'] > 0:
+			print("Variance ", end = "")
+			return True 
 
 
 	#Calculate confidence in the mean
