@@ -8,7 +8,7 @@ import scipy as sp
 from scipy.stats import f
 
 
-window = 5
+window = 10
 baselineSize = 50
 chiBuffer = []
 chiBufferScale = 3
@@ -62,14 +62,39 @@ def buildFrequencies(charArray, includeArr=[]):
 #Perform a chi square test with a set of buffer frequencies, 
 #and baseline frequencies
 def chiSquareTest(bufferVals, baselineVals):
-	print(bufferVals)
-	print(baselineVals)
-	pValue = sp.stats.chisquare(bufferVals['freq'], baselineVals['freq'])[1]
-
-	print("pValue:")
+	global window
+	global baselineSize
+# 	print(bufferVals['freq'])
+	pValue = sp.stats.chi2.ppf(confidence - .01, ((len(bufferVals['freq'])- 1) * (len(baselineVals['freq']) - 1)))
+# 	ratio = window / baselineSize
+# 	expectedBuffVals =[]
+# 	expectedBaseVals = []
+# 	
+# 	
+# 	for i in range(len(bufferVals['freq'])):
+# 		b = bufferVals['freq'][i] + baselineVals['freq'][i]		
+# 		expectedBuffVals.append(b * ratio)
+# 		expectedBaseVals.append(b * (1 - ratio))
+# 	chi = 0
+# 	for i in range(len(bufferVals['freq'])):
+# 		chi += (bufferVals['freq'][i] - expectedBuffVals[i])**2/ expectedBuffVals[i]
+# 		chi += (baselineVals['freq'][i] - expectedBaseVals[i])**2/ expectedBaseVals[i]	
+# 	print (chi)
+# 	print (pValue)
+	
+# 	chi2,p  = sp.stats.chisquare(np.array([bufferVals['freq'], baselineVals['freq']]), f_exp = np.array([expectedBuffVals, expectedBaseVals]))
+# 	print(p)
+# 	print (chi2)
+	
+	
+# 	print(bufferVals['freq'])
+# 	pValue = sp.stats.chi2.ppf(confidence, window-1)
 	print(pValue)
-	if pValue > (1-confidence):
-		print("Chi square frequency change detected! p-value: "+str(pValue)+" Confidence: "+str(1-confidence))
+	chiSquared = sp.stats.chi2_contingency(np.array([bufferVals['freq'], baselineVals['freq']]))[0]
+# 	chiSquared2 = sp.stats.chi2_contingency(np.array([bufferVals['freq'], baselineVals['freq']]))[3]
+# 	print(chiSquared2)
+	if chiSquared > pValue:
+		print("Chi square frequency change detected! p-value: "+str(pValue)+" chiSquared: "+str(chiSquared))
 		return True
 	return False
 
@@ -81,17 +106,20 @@ def meanVarianceTest(bufferVals, baselineVals):
 	
 	#VARIANCE TEST
 	#A variance of 0 means we can't perform the F-test
-	if bufferVals['var'] != 0:
-		#variance has increased
-		if(bufferVals['var'] > bufferVals['var']):
-			pValue = sp.stats.f.sf((bufferVals['var'] / baselineVals['var']), window - 1, baselineSize - 1)
-		#variance has decreased
-		else:
-			pValue = sp.stats.f.sf((baselineVals['var'] / bufferVals['var']), baselineSize - 1, window - 1)
-		if  pValue < alpha:
-			print("Variance ", end="")
-			print("Variance has changed")
+	if(baselineVals['var'] != 0):
+		FValue = bufferVals['var'] / baselineVals['var']
+		upperVal = sp.stats.f.isf(alpha, window - 1, baselineSize - 1)
+		lowerVal = sp.stats.f.ppf(alpha, window - 1, baselineSize - 1)
+		
+		if  FValue < lowerVal or FValue > upperVal:
+			print("Variance ", end = "")
 			return True
+	#In the unlikely case that the baseline variance is 0 that means finding any 
+	#variance at all is a change in variance  
+	else:
+		if bufferVals['var'] > 0:
+			print("Variance ", end = "")
+			return True 
 
 
 	#MEAN TEST
