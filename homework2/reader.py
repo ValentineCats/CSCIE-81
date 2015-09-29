@@ -1,4 +1,4 @@
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from sys import argv
 from os import listdir, remove
 from os.path import isfile, join
@@ -61,10 +61,11 @@ def buildFrequencies(charArray, includeArr=[]):
 
 #Perform a chi square test with a set of buffer frequencies, 
 #and baseline frequencies
+#We were struggling with some of the built-in scipy chi tests, so 
+#these calculation are done "by hand"
 def chiSquareTest(bufferVals, baselineVals):
 	global window
 	global baselineSize
-# 	print(bufferVals['freq'])
 	pValue = sp.stats.chi2.ppf(confidence +.03, ((len(bufferVals['freq'])- 1) * (len(baselineVals['freq']) - 1)))
 	ratio = window / baselineSize
 	expectedBuffVals =[]
@@ -79,15 +80,7 @@ def chiSquareTest(bufferVals, baselineVals):
 	for i in range(len(bufferVals['freq'])):
 		chiSquared += (bufferVals['freq'][i] - expectedBuffVals[i])**2/ expectedBuffVals[i]
 		chiSquared += (baselineVals['freq'][i] - expectedBaseVals[i])**2/ expectedBaseVals[i]	
-# 	print ("pVal ", pValue)
-	
-# 	chi2,p  = sp.stats.chisquare(np.array([bufferVals['freq'], baselineVals['freq']]), f_exp = np.array([expectedBuffVals, expectedBaseVals]))
-# 	print(p)
-# 	print (chi2)	
-	
-# 	chiSquared = sp.stats.chi2_contingency(np.array([bufferVals['freq'], baselineVals['freq']]))[0]
-# 	chiSquared2 = sp.stats.chi2_contingency(np.array([bufferVals['freq'], baselineVals['freq']]))[3]
-# 	print("cVal ", chiSquared)
+
 	if chiSquared > pValue:
 		print("Chi square frequency change detected! p-value: "+str(pValue)+" chiSquared: "+str(chiSquared))
 		return True
@@ -137,20 +130,6 @@ def meanVarianceTest(bufferVals, baselineVals):
 			print("Variance ", end = "")
 			return True 
 
-# 	if(baselineVals['var'] != 0):
-# 		FValue = bufferVals['var'] / baselineVals['var']
-# 		pValue = sp.stats.f.cdf(FValue, window - 1, baselineSize - 1)
-# 		
-# 		if  pValue > (1-confidence):
-# 			print("Variance ", end = "")
-# 			return True
-# # 	In the unlikely case that the baseline variance is 0 that means finding any 
-# # 	variance at all is a change in variance  
-# 	else:
-# 		if bufferVals['var'] > 0:
-# 			print("Variance ", end = "")
-# 			return True 
-# 		
 	return False
 		
 	
@@ -195,9 +174,9 @@ def getWindow(fileCon, measurements):
 
 
 directory = argv[1]
-if isfile('output.txt'):
-	remove('output.txt')
-output = open('output.txt', 'a')
+if isfile('outputFitzgeraldMitchell.txt'):
+	remove('outputFitzgeraldMitchell.txt')
+output = open('outputFitzgeraldMitchell.txt', 'a')
 output.truncate()
 files = [ f for f in listdir(directory) if isfile(join(directory,f)) ]
 files = sorted(files)
@@ -207,6 +186,7 @@ for txtFile in files:
 	print(txtFile)
 	outputLine = txtFile+'\t'
 	chiBuffer = []
+	#UNCOMMENT THIS TO SEE PLOTS DISPLAYED
 	########TESTING
 	#fileCon = open(directory+'/'+txtFile, 'r')
 	#allData = []
@@ -239,10 +219,6 @@ for txtFile in files:
 		chiBuffer = baseline[window*chiBufferScale:]
 		measurements = {'freq':buildFrequencies(baseline), 'chars':list(set(baseline))}
 	
-
-	#scale = measurements['stdDev']/sp.sqrt(baselineSize)
-	#interval = stats.norm.interval(confidence, loc=measurements['mean'], scale=scale)
-	#measurements.append['interval':interval]
 	lineCount = baselineSize
 	try:
 		while not getWindow(fileCon, measurements):
