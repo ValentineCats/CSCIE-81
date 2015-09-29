@@ -67,20 +67,7 @@ def chiSquareTest(bufferVals, baselineVals):
 	global window
 	global baselineSize
 	pValue = sp.stats.chi2.ppf(confidence +.03, ((len(bufferVals['freq'])- 1) * (len(baselineVals['freq']) - 1)))
-	ratio = window / baselineSize
-	expectedBuffVals =[]
-	expectedBaseVals = []
-	
-	
-	for i in range(len(bufferVals['freq'])):
-		b = bufferVals['freq'][i] + baselineVals['freq'][i]		
-		expectedBuffVals.append(b * ratio)
-		expectedBaseVals.append(b * (1 - ratio))
-	chiSquared = 0
-	for i in range(len(bufferVals['freq'])):
-		chiSquared += (bufferVals['freq'][i] - expectedBuffVals[i])**2/ expectedBuffVals[i]
-		chiSquared += (baselineVals['freq'][i] - expectedBaseVals[i])**2/ expectedBaseVals[i]	
-
+	chiSquared = sp.stats.chi2_contingency(np.array([bufferVals['freq'], baselineVals['freq']]))[0]
 	if chiSquared > pValue:
 		print("Chi square frequency change detected! p-value: "+str(pValue)+" chiSquared: "+str(chiSquared))
 		return True
