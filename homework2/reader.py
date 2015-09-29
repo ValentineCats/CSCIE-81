@@ -79,7 +79,7 @@ def chiSquareTest(bufferVals, baselineVals):
 	for i in range(len(bufferVals['freq'])):
 		chiSquared += (bufferVals['freq'][i] - expectedBuffVals[i])**2/ expectedBuffVals[i]
 		chiSquared += (baselineVals['freq'][i] - expectedBaseVals[i])**2/ expectedBaseVals[i]	
-	print ("pVal ", pValue)
+# 	print ("pVal ", pValue)
 	
 # 	chi2,p  = sp.stats.chisquare(np.array([bufferVals['freq'], baselineVals['freq']]), f_exp = np.array([expectedBuffVals, expectedBaseVals]))
 # 	print(p)
@@ -87,7 +87,7 @@ def chiSquareTest(bufferVals, baselineVals):
 	
 # 	chiSquared = sp.stats.chi2_contingency(np.array([bufferVals['freq'], baselineVals['freq']]))[0]
 # 	chiSquared2 = sp.stats.chi2_contingency(np.array([bufferVals['freq'], baselineVals['freq']]))[3]
-	print("cVal ", chiSquared)
+# 	print("cVal ", chiSquared)
 	if chiSquared > pValue:
 		print("Chi square frequency change detected! p-value: "+str(pValue)+" chiSquared: "+str(chiSquared))
 		return True
@@ -136,8 +136,23 @@ def meanVarianceTest(bufferVals, baselineVals):
 		if bufferVals['var'] > 0:
 			print("Variance ", end = "")
 			return True 
-		
+
+# 	if(baselineVals['var'] != 0):
+# 		FValue = bufferVals['var'] / baselineVals['var']
+# 		pValue = sp.stats.f.cdf(FValue, window - 1, baselineSize - 1)
+# 		
+# 		if  pValue > (1-confidence):
+# 			print("Variance ", end = "")
+# 			return True
+# # 	In the unlikely case that the baseline variance is 0 that means finding any 
+# # 	variance at all is a change in variance  
+# 	else:
+# 		if bufferVals['var'] > 0:
+# 			print("Variance ", end = "")
+# 			return True 
+# 		
 	return False
+		
 	
 	
 #Takes as arguments a file object and a dict of 
